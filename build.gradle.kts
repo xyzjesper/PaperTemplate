@@ -2,7 +2,7 @@ plugins {
     kotlin("jvm") version "2.0.20-Beta1"
     id("com.gradleup.shadow") version "9.0.0-beta8"
     id("xyz.jpenilla.run-paper") version "2.3.1"
-    id("de.eldoria.plugin-yml.bukkit") version "0.7.0"
+    id("de.eldoria.plugin-yml.paper") version "0.7.0"
     kotlin("plugin.serialization") version "2.1.0"
 }
 
@@ -50,7 +50,6 @@ kotlin {
 
 tasks.build {
     dependsOn(tasks.shadowJar)
-    dependsOn(tasks.reobfJar)
 }
 
 tasks {
