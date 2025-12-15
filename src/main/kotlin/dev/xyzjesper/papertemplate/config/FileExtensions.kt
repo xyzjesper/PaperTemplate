@@ -1,4 +1,4 @@
-package net.crystopia.onlyup.config
+package dev.xyzjesper.papertemplate.config
 
 import kotlinx.serialization.json.Json
 import java.io.File

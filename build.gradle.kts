@@ -1,12 +1,14 @@
 plugins {
-    kotlin("jvm") version "2.2.21"
-    kotlin("plugin.serialization") version "2.2.21"
-    id("com.gradleup.shadow") version "9.0.3"
+    kotlin("jvm") version "2.+"
+    kotlin("plugin.serialization") version "2.+"
+    id("com.gradleup.shadow") version "9.+"
     id("xyz.jpenilla.run-paper") version "3.+"
-    id("de.eldoria.plugin-yml.paper") version "0.8.0"
+    id("de.eldoria.plugin-yml.paper") version "0.8.+"
+    id("io.papermc.paperweight.userdev") version "2.0.0-beta.19"
+    id("maven-publish")
 }
 
-val mcVersion = properties["minecraftVerions"] as String
+val mcVersion = properties["minecraftVersion"] as String
 
 val projectVersion = properties["version"] as String
 val projectName = properties["name"] as String
@@ -19,7 +21,9 @@ val mainClass = properties["main"] as String
 val twilightVersion = properties["twilightVersion"] as String
 val commandAPIVersion = properties["commandAPIVersion"] as String
 val rethisVersion = properties["rethisVersion"] as String
-val kormVersion = properties["rethisVersion"] as String
+val kormVersion = properties["kormVersion"] as String
+val dotenvVersion = properties["dotenvVersion"] as String
+val crystalShardVersion = properties["crystalShardVersion"] as String
 
 group = groupID
 version = projectVersion
@@ -31,6 +35,10 @@ repositories {
         url = uri("https://repo.papermc.io/repository/maven-public/")
     }
     maven("https://repo.flyte.gg/releases")
+    maven {
+        name = "xyzReleases"
+        url = uri("https://repo.xyzhub.link/releases")
+    }
 }
 
 dependencies {
@@ -42,21 +50,26 @@ dependencies {
     implementation("eu.vendeli:rethis:$rethisVersion")
     implementation("org.ktorm:ktorm-core:$kormVersion")
 
-
+    // ENV
+    implementation("io.github.cdimascio:dotenv-kotlin:$dotenvVersion")
+    
+    // CrystalShard
+    implementation("net.crystopia:crystalshard:$crystalShardVersion")
+    
     // Paper
-    compileOnly("io.papermc.paper:paper-api:${mcVersion}-R0.1-SNAPSHOT")
-
+    // compileOnly("io.papermc.paper:paper-api:${mcVersion}-R0.1-SNAPSHOT")
+    paperweight.paperDevBundle("$mcVersion-R0.1-SNAPSHOT")
     // Twilight
     implementation("gg.flyte:twilight:${twilightVersion}")
 
     // Command API
-    compileOnly("dev.jorel:commandapi-bukkit-core:${commandAPIVersion}")
-    implementation("dev.jorel:commandapi-bukkit-shade-mojang-mapped:${commandAPIVersion}")
-    implementation("dev.jorel:commandapi-bukkit-kotlin:${commandAPIVersion}")
+    compileOnly("dev.jorel:commandapi-paper-core:${commandAPIVersion}")
+    implementation("dev.jorel:commandapi-paper-shade:${commandAPIVersion}")
+    implementation("dev.jorel:commandapi-kotlin-paper:${commandAPIVersion}")
 }
 
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(24)
 }
 
 tasks.build {
@@ -71,9 +84,33 @@ tasks {
 
 paper {
     name = projectName
-    version = version
+    version = mcVersion
     description = projectDescription
     main = mainClass
-    authors = listOf("xyzjesper")
-    apiVersion = "1.19"
+    authors = listOf("xyzjesper", "xyzPlugins")
+    apiVersion = "1.21"
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "Reposilite"
+            url = uri("https://repo.xyzhub.link/releases")
+            credentials {
+                username = System.getenv("REPOSILITE_USER") ?: System.getProperty("REPOSILITE_USER") ?: "USERNAME"
+                password = System.getenv("REPOSILITE_TOKEN") ?: System.getProperty("REPOSILITE_TOKEN") ?: "TOKEN"
+            }
+            authentication {
+                create<BasicAuthentication>("basic")
+            }
+        }
+    }
+    publications {
+        create<MavenPublication>("reposilite") {
+            from(components["java"])
+            artifactId = projectName
+            groupId = group as String
+            version = version
+        }
+    }
 }
